@@ -37,7 +37,7 @@ public sealed class KeyService : IKeyService
         {
             var headerLength = KeyStatics.GetHeaderLength(token);
             var headerResult = KeyStatics.ParseHeader(token, headerLength);
-
+            
             if (headerResult.IsFailure)
             {
                 return headerResult.Problem;
@@ -45,7 +45,7 @@ public sealed class KeyService : IKeyService
 
             var header = headerResult.Value;
             var key = new TKey();
-
+            
             if (header != key.Header)
             {
                 return $"Headers mismatch. Expected {key.Header} but was {header}";
@@ -54,7 +54,7 @@ public sealed class KeyService : IKeyService
             var signatureAlgorithm = GetSignature(header.Alg);
             var payloadStart = KeyStatics.HeaderStart + headerLength;
             var payloadEnd = token.Length - signatureAlgorithm.Length;
-
+            
             if (payloadEnd < payloadStart)
             {
                 return "Token is too short";
@@ -65,7 +65,7 @@ public sealed class KeyService : IKeyService
 
             var dataToVerify = token[..^signatureAlgorithm.Length];
             var expectedSignature = signatureAlgorithm.Generate(dataToVerify, _configuration.Secret);
-
+            
             if (string.Equals(signature, expectedSignature, StringComparison.OrdinalIgnoreCase) == false)
             {
                 return "Invalid signature";
@@ -74,7 +74,7 @@ public sealed class KeyService : IKeyService
             var payloadBytes = Convert.FromBase64String(KeyStatics.PadBase64(payloadEncoded));
             var payloadJson = Encoding.UTF8.GetString(payloadBytes);
             var payload = JsonSerializer.Deserialize<TPayload>(payloadJson);
-
+            
             return key with { Payload = payload!, Token = token };
         }
         catch (JsonException)
@@ -90,12 +90,12 @@ public sealed class KeyService : IKeyService
     private ISignature GetSignature(string alg)
     {
         var signature = _signatures.FirstOrDefault(s => GetAlgName(s) == alg);
-
+        
         if (signature is null)
         {
             throw new NotSupportedException($"Algorithm {alg} is not supported");
         }
-
+        
         return signature;
     }
 

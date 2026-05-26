@@ -78,4 +78,26 @@ public class ApiKeyTests
             Assert.That(result.ToString(), Is.EqualTo("Expired"));
         }
     }
+
+    [Test]
+    public void Verify_ShouldSucceed_WhenNotExpired()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var validTime = now.AddHours(1);
+
+        var apiKey = new ApiKey
+        {
+            Payload = new ApiKey.Definition
+            {
+                Uid = "user123",
+                Scopes = ["read"],
+                Iat = now.ToUnixTimeSeconds(),
+                Exp = validTime.ToUnixTimeSeconds()
+            }
+        };
+
+        var result = apiKey.Verify(TimeProvider.System);
+
+        Assert.That(result.IsSuccess, Is.True);
+    }
 }

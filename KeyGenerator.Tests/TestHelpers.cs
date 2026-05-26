@@ -20,3 +20,9 @@ public static class TestServiceProvider
         return new KeyService(config, signatures);
     }
 }
+
+public sealed record CustomKey : Key<CustomKey, string>
+{
+    public override Header Header { get; } = new() { Alg = Symmetric512.Alg, Typ = "CUSTOM", Ver = 1 };
+    protected override ISignature Signature { get; } = Signatures.Symmetric512;
+}
