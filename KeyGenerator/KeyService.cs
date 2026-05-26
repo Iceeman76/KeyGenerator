@@ -3,78 +3,73 @@ using System.Text.Json;
 
 namespace KeyGenerator;
 
-public sealed class KeyService : IKeyService
+public sealed class KeyService(IKeyConfiguration configuration, IEnumerable<ISignature> signatures) : IKeyService
 {
-    private readonly IKeyConfiguration _configuration;
-    private readonly IEnumerable<ISignature> _signatures;
-
-    public KeyService(IKeyConfiguration configuration, IEnumerable<ISignature> signatures)
+    private static readonly JsonSerializerOptions Options = new()
     {
-        _configuration = configuration;
-        _signatures = signatures;
-    }
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     public string CreateToken<TKey, TPayload>(Key<TKey, TPayload> key) where TKey : class
     {
-        var headerJson = JsonSerializer.Serialize(key.Header);
-        var headerBytes = Encoding.UTF8.GetBytes(headerJson);
-        var headerEncoded = KeyStatics.Base64UrlEncode(headerBytes);
-        var headerLengthHex = headerEncoded.Length.ToString("X4");
+        var headerJson = JsonSerializer.Serialize(key.Header, Options);
+        var headerEncoded = KeyStatics.Base64UrlEncode(Encoding.UTF8.GetBytes(headerJson));
 
-        var payloadJson = JsonSerializer.Serialize(key.Payload);
-        var payloadBytes = Encoding.UTF8.GetBytes(payloadJson);
-        var payloadEncoded = KeyStatics.Base64UrlEncode(payloadBytes);
+        var payloadJson = JsonSerializer.Serialize(key.Payload, Options);
+        var payloadEncoded = KeyStatics.Base64UrlEncode(Encoding.UTF8.GetBytes(payloadJson));
 
-        var dataToSign = $"{headerLengthHex}{headerEncoded}{payloadEncoded}";
-        var signature = GetSignature(key.Header.Alg).Generate(dataToSign, _configuration.Secret);
+        var dataToSign = $"{headerEncoded}.{payloadEncoded}";
+        var signatureBytes = GetSignature(key.Header.Alg).Generate(dataToSign, configuration.Secret);
+        var signatureEncoded = KeyStatics.Base64UrlEncode(signatureBytes);
 
-        return $"{dataToSign}{signature}";
+        return $"{dataToSign}.{signatureEncoded}";
     }
 
     public Result<TKey> ParseToken<TKey, TPayload>(string token) where TKey : Key<TKey, TPayload>, new()
     {
         try
         {
-            var headerLength = KeyStatics.GetHeaderLength(token);
-            var headerResult = KeyStatics.ParseHeader(token, headerLength);
-            
-            if (headerResult.IsFailure)
+            if (string.IsNullOrEmpty(token))
             {
-                return headerResult.Problem;
+                return "Invalid format";
             }
 
-            var header = headerResult.Value;
+            var parts = token.Split('.');
+
+            if (parts.Length != 3)
+            {
+                return "Invalid token format. Expected 3 parts.";
+            }
+
+            var headerEncoded = parts[0];
+            var payloadEncoded = parts[1];
+            var signatureEncoded = parts[2];
+
+            var headerBytes = KeyStatics.Base64UrlDecode(headerEncoded);
+            var headerJson = Encoding.UTF8.GetString(headerBytes);
+            var header = JsonSerializer.Deserialize<Header>(headerJson, Options)!;
+
             var key = new TKey();
-            
+
             if (header != key.Header)
             {
                 return $"Headers mismatch. Expected {key.Header} but was {header}";
             }
 
             var signatureAlgorithm = GetSignature(header.Alg);
-            var payloadStart = KeyStatics.HeaderStart + headerLength;
-            var payloadEnd = token.Length - signatureAlgorithm.Length;
-            
-            if (payloadEnd < payloadStart)
-            {
-                return "Token is too short";
-            }
+            var dataToVerify = $"{headerEncoded}.{payloadEncoded}";
+            var expectedSignatureBytes = signatureAlgorithm.Generate(dataToVerify, configuration.Secret);
+            var expectedSignatureEncoded = KeyStatics.Base64UrlEncode(expectedSignatureBytes);
 
-            var payloadEncoded = token.Substring(payloadStart, payloadEnd - payloadStart);
-            var signature = token.Substring(token.Length - signatureAlgorithm.Length, signatureAlgorithm.Length);
-
-            var dataToVerify = token[..^signatureAlgorithm.Length];
-            var expectedSignature = signatureAlgorithm.Generate(dataToVerify, _configuration.Secret);
-            
-            if (string.Equals(signature, expectedSignature, StringComparison.OrdinalIgnoreCase) == false)
+            if (string.Equals(signatureEncoded, expectedSignatureEncoded, StringComparison.Ordinal) == false)
             {
                 return "Invalid signature";
             }
 
-            var payloadBytes = Convert.FromBase64String(KeyStatics.PadBase64(payloadEncoded));
+            var payloadBytes = KeyStatics.Base64UrlDecode(payloadEncoded);
             var payloadJson = Encoding.UTF8.GetString(payloadBytes);
-            var payload = JsonSerializer.Deserialize<TPayload>(payloadJson);
-            
+            var payload = JsonSerializer.Deserialize<TPayload>(payloadJson, Options);
+
             return key with { Payload = payload!, Token = token };
         }
         catch (JsonException)
@@ -89,14 +84,9 @@ public sealed class KeyService : IKeyService
 
     private ISignature GetSignature(string alg)
     {
-        var signature = _signatures.FirstOrDefault(s => GetAlgName(s) == alg);
-        
-        if (signature is null)
-        {
-            throw new NotSupportedException($"Algorithm {alg} is not supported");
-        }
-        
-        return signature;
+        var signature = signatures.FirstOrDefault(s => GetAlgName(s) == alg);
+
+        return signature ?? throw new NotSupportedException($"Algorithm {alg} is not supported");
     }
 
     private static string GetAlgName(ISignature signature)

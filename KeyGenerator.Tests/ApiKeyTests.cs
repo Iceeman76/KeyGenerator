@@ -1,6 +1,6 @@
 namespace KeyGenerator.Tests;
 
-public class ApiKeyTests
+public sealed class ApiKeyTests
 {
     private IKeyService _keyService = null!;
 
@@ -17,7 +17,7 @@ public class ApiKeyTests
         {
             Payload = new ApiKey.Definition
             {
-                Uid = "user123",
+                Sub = "user123",
                 Scopes = ["read"],
                 Iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 Exp = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()
@@ -36,7 +36,7 @@ public class ApiKeyTests
         {
             Payload = new ApiKey.Definition
             {
-                Uid = "user123",
+                Sub = "user123",
                 Scopes = ["read"],
                 Iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 Exp = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()
@@ -49,7 +49,7 @@ public class ApiKeyTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.IsSuccess, Is.True);
-            Assert.That(result.Value.Payload.Uid, Is.EqualTo("user123"));
+            Assert.That(result.Value.Payload.Sub, Is.EqualTo("user123"));
         }
     }
 
@@ -63,7 +63,7 @@ public class ApiKeyTests
         {
             Payload = new ApiKey.Definition
             {
-                Uid = "user123",
+                Sub = "user123",
                 Scopes = ["read"],
                 Iat = expiredTime.AddHours(-1).ToUnixTimeSeconds(),
                 Exp = expiredTime.ToUnixTimeSeconds()
@@ -75,7 +75,7 @@ public class ApiKeyTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.IsSuccess, Is.False);
-            Assert.That(result.ToString(), Is.EqualTo("Expired"));
+            Assert.That(result.Problem, Is.EqualTo("Expired"));
         }
     }
 
@@ -89,7 +89,7 @@ public class ApiKeyTests
         {
             Payload = new ApiKey.Definition
             {
-                Uid = "user123",
+                Sub = "user123",
                 Scopes = ["read"],
                 Iat = now.ToUnixTimeSeconds(),
                 Exp = validTime.ToUnixTimeSeconds()
