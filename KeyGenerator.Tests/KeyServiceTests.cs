@@ -1,3 +1,5 @@
+using KeyGenerator.Signatures;
+
 namespace KeyGenerator.Tests;
 
 public sealed class KeyServiceTests

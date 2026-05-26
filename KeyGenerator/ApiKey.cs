@@ -1,3 +1,5 @@
+using KeyGenerator.Signatures;
+
 namespace KeyGenerator;
 
 public sealed record ApiKey : Key<ApiKey, ApiKey.Definition>

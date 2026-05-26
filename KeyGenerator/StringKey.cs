@@ -1,4 +1,6 @@
-﻿namespace KeyGenerator;
+﻿using KeyGenerator.Signatures;
+
+namespace KeyGenerator;
 
 public sealed record StringKey : Key<StringKey, StringKey.Definition>
 {

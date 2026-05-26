@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using KeyGenerator.Signatures;
 
 namespace KeyGenerator.Tests;
 
