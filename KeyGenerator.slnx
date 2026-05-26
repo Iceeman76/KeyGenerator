@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="KeyGenerator.Tests/KeyGenerator.Tests.csproj" />
+  <Project Path="KeyGenerator/KeyGenerator.csproj" />
+</Solution>
