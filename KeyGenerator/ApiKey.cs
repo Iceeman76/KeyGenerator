@@ -2,9 +2,7 @@ namespace KeyGenerator;
 
 public sealed record ApiKey : Key<ApiKey, ApiKey.Definition>
 {
-    public override Header Header { get; } = new() { Alg = Symmetric256.Alg, Typ = "API" };
-
-    protected override ISignature Signature { get; } = Signatures.Symmetric256;
+    public override Header Header { get; } = new() { Alg = Symmetric256.AlgName, Typ = "API" };
 
     public sealed record Definition
     {

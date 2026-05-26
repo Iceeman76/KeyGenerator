@@ -5,19 +5,16 @@ namespace KeyGenerator;
 
 public interface ISignature
 {
-    public byte[] Generate(string input, string secret);
-}
+    string Alg { get; }
 
-public static class Signatures
-{
-    public static ISignature Symmetric64 => new Symmetric64();
-    public static ISignature Symmetric256 => new Symmetric256();
-    public static ISignature Symmetric512 => new Symmetric512();
+    public byte[] Generate(string input, string secret);
 }
 
 public sealed record Symmetric64 : ISignature
 {
-    public const string Alg = "HS64";
+    public const string AlgName = "HS64";
+
+    string ISignature.Alg => AlgName;
 
     public byte[] Generate(string input, string secret)
     {
@@ -33,7 +30,9 @@ public sealed record Symmetric64 : ISignature
 
 public sealed record Symmetric256 : ISignature
 {
-    public const string Alg = "HS256";
+    public const string AlgName = "HS256";
+
+    string ISignature.Alg => AlgName;
 
     public byte[] Generate(string input, string secret)
     {
@@ -48,7 +47,9 @@ public sealed record Symmetric256 : ISignature
 
 public sealed record Symmetric512 : ISignature
 {
-    public const string Alg = "HS512";
+    public const string AlgName = "HS512";
+
+    string ISignature.Alg => AlgName;
 
     public byte[] Generate(string input, string secret)
     {

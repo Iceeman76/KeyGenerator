@@ -1,13 +1,13 @@
 namespace KeyGenerator;
 
-internal static class KeyStatics
+internal static class Base64Url
 {
-    public static string Base64UrlEncode(byte[] bytes)
+    internal static string Encode(byte[] bytes)
     {
         return Convert.ToBase64String(bytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
     }
 
-    public static byte[] Base64UrlDecode(string input)
+    internal static byte[] Decode(string input)
     {
         var output = input.Replace('-', '+').Replace('_', '/');
 

@@ -23,6 +23,10 @@ public static class TestServiceProvider
 
 public sealed record CustomKey : Key<CustomKey, string>
 {
-    public override Header Header { get; } = new() { Alg = Symmetric512.Alg, Typ = "CUSTOM" };
-    protected override ISignature Signature { get; } = Signatures.Symmetric512;
+    public override Header Header { get; } = new() { Alg = Symmetric512.AlgName, Typ = "CUSTOM" };
+
+    public override Result Verify(TimeProvider timeProvider)
+    {
+        return Result.Success();
+    }
 }

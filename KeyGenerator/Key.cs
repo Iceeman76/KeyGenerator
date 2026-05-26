@@ -8,10 +8,5 @@ public abstract record Key<TKey, TPayload> where TKey : class
 
     public string Token { get; init; } = null!;
 
-    protected abstract ISignature Signature { get; }
-
-    public virtual Result Verify(TimeProvider timeProvider)
-    {
-        return Result.Success();
-    }
+    public abstract Result Verify(TimeProvider timeProvider);
 }
