@@ -1,0 +1,81 @@
+namespace KeyGenerator.Tests;
+
+public class ApiKeyTests
+{
+    private IKeyService _keyService = null!;
+
+    [SetUp]
+    public void Setup()
+    {
+        _keyService = TestServiceProvider.CreateKeyService();
+    }
+
+    [Test]
+    public void Create_ShouldGenerateValidToken()
+    {
+        var apiKey = new ApiKey
+        {
+            Payload = new ApiKey.Definition
+            {
+                Uid = "user123",
+                Scopes = ["read"],
+                Iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                Exp = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()
+            }
+        };
+
+        var token = _keyService.CreateToken(apiKey);
+
+        Assert.That(token, Is.Not.Null.And.Not.Empty);
+    }
+
+    [Test]
+    public void Parse_ShouldReturnValidApiKey()
+    {
+        var original = new ApiKey
+        {
+            Payload = new ApiKey.Definition
+            {
+                Uid = "user123",
+                Scopes = ["read"],
+                Iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                Exp = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()
+            }
+        };
+
+        var token = _keyService.CreateToken(original);
+        var result = _keyService.ParseToken<ApiKey, ApiKey.Definition>(token);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Value.Payload.Uid, Is.EqualTo("user123"));
+        }
+    }
+
+    [Test]
+    public void Verify_ShouldFail_WhenExpired()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var expiredTime = now.AddHours(-1);
+
+        var apiKey = new ApiKey
+        {
+            Payload = new ApiKey.Definition
+            {
+                Uid = "user123",
+                Scopes = ["read"],
+                Iat = expiredTime.AddHours(-1).ToUnixTimeSeconds(),
+                Exp = expiredTime.ToUnixTimeSeconds()
+            }
+        };
+
+        var result = apiKey.Verify(TimeProvider.System);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.ToString(), Is.EqualTo("Expired"));
+        }
+    }
+}

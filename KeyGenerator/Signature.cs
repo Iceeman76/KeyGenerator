@@ -16,7 +16,7 @@ public static class Signatures
     public static ISignature Symmetric512 => new Symmetric512();
 }
 
-public record Symmetric64 : ISignature
+public sealed record Symmetric64 : ISignature
 {
     public const string Alg = "HS64";
     public int Length => 16;
@@ -35,7 +35,7 @@ public record Symmetric64 : ISignature
     }
 }
 
-public record Symmetric256 : ISignature
+public sealed record Symmetric256 : ISignature
 {
     public const string Alg = "HS256";
     public int Length => 64;
@@ -53,7 +53,7 @@ public record Symmetric256 : ISignature
     }
 }
 
-public record Symmetric512 : ISignature
+public sealed record Symmetric512 : ISignature
 {
     public const string Alg = "HS512";
     public int Length => 128;
