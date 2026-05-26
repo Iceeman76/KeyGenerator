@@ -11,6 +11,7 @@ A simple and extensible .NET library for generating and verifying signed tokens,
   - `HS512`: HMAC-SHA512 (512-bit signature).
   - `HS64`: HMAC-SHA256 truncated to 64 bits (useful for shorter tokens where full security isn't required).
 - **CamelCase JSON support**: Automatically handles naming policies for JSON serialization/deserialization.
+- **Timing-safe signature verification**: Uses `CryptographicOperations.FixedTimeEquals` to prevent timing attacks.
 - **Extensible Architecture**: Easily implement new signature algorithms by implementing the `ISignature` interface.
 
 ## Getting Started
@@ -41,11 +42,14 @@ public sealed record UserKey : Key<UserKey, UserPayload>
 {
     public override Header Header { get; } = new() 
     { 
-        Alg = Symmetric256.Alg, 
+        Alg = Symmetric256.AlgName, 
         Typ = "USER" 
     };
 
-    protected override ISignature Signature { get; } = Signatures.Symmetric256;
+    public override Result Verify(TimeProvider timeProvider)
+    {
+        return Result.Success();
+    }
 }
 ```
 
@@ -55,9 +59,9 @@ public sealed record UserKey : Key<UserKey, UserPayload>
 var config = new MyKeyConfig();
 var signatures = new ISignature[] 
 { 
-    Signatures.Symmetric256,
-    Signatures.Symmetric512,
-    Signatures.Symmetric64
+    new Symmetric256(),
+    new Symmetric512(),
+    new Symmetric64()
 };
 
 var keyService = new KeyService(config, signatures);
