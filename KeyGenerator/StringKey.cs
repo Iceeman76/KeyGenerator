@@ -6,7 +6,7 @@ public sealed record StringKey : Key<StringKey, StringKey.Definition>
 {
     public override Header Header { get; } = new()
     {
-        Alg = Symmetric64.AlgName,
+        Alg = Symmetric256.AlgName,
         Typ = "STRING"
     };
 

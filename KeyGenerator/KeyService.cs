@@ -8,11 +8,17 @@ public sealed class KeyService(IKeyConfiguration configuration, IEnumerable<ISig
 {
     private static readonly JsonSerializerOptions Options = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        RespectNullableAnnotations = true
     };
 
     public string CreateToken<TKey, TPayload>(Key<TKey, TPayload> key) where TKey : class
     {
+        if (key.Payload is null)
+        {
+            throw new ArgumentException("Payload cannot be null.", nameof(key));
+        }
+
         var headerJson = JsonSerializer.Serialize(key.Header, Options);
         var headerEncoded = Base64Url.Encode(Encoding.UTF8.GetBytes(headerJson));
 
@@ -37,7 +43,7 @@ public sealed class KeyService(IKeyConfiguration configuration, IEnumerable<ISig
 
             var parts = token.Split('.');
 
-            if (parts.Length != 3)
+            if (parts.Length is not 3)
             {
                 return "Invalid token format. Expected 3 parts.";
             }
@@ -48,11 +54,11 @@ public sealed class KeyService(IKeyConfiguration configuration, IEnumerable<ISig
 
             var headerBytes = Base64Url.Decode(headerEncoded);
             var headerJson = Encoding.UTF8.GetString(headerBytes);
-            var header = JsonSerializer.Deserialize<Header>(headerJson, Options)!;
+            var header = JsonSerializer.Deserialize<Header>(headerJson, Options);
 
             var key = new TKey();
 
-            if (header != key.Header)
+            if (header is null || header.Equals(key.Header) is false)
             {
                 return $"Headers mismatch. Expected {key.Header} but was {header}";
             }
@@ -62,7 +68,7 @@ public sealed class KeyService(IKeyConfiguration configuration, IEnumerable<ISig
             var expectedSignatureBytes = signatureAlgorithm.Generate(dataToVerify, configuration.Secret);
             var signatureBytes = Base64Url.Decode(signatureEncoded);
 
-            if (CryptographicOperations.FixedTimeEquals(signatureBytes, expectedSignatureBytes) == false)
+            if (CryptographicOperations.FixedTimeEquals(signatureBytes, expectedSignatureBytes) is false)
             {
                 return "Invalid signature";
             }
@@ -71,15 +77,20 @@ public sealed class KeyService(IKeyConfiguration configuration, IEnumerable<ISig
             var payloadJson = Encoding.UTF8.GetString(payloadBytes);
             var payload = JsonSerializer.Deserialize<TPayload>(payloadJson, Options);
 
-            return key with { Payload = payload!, Token = token };
+            if (payload is null)
+            {
+                return "Payload cannot be null";
+            }
+
+            return key with { Payload = payload, Token = token };
         }
         catch (JsonException)
         {
             return "Malformed json";
         }
-        catch (Exception ex)
+        catch (FormatException)
         {
-            return $"Invalid format: {ex.Message}";
+            return "Invalid format: invalid Base64Url encoding";
         }
     }
 

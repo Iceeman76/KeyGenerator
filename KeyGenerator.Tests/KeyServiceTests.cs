@@ -114,7 +114,7 @@ public sealed class KeyServiceTests
     }
 
     [Test]
-    public void ParseToken_ShouldFail_WhenAlgorithmIsNotSupported()
+    public void ParseToken_ShouldThrow_WhenAlgorithmIsNotSupported()
     {
         var signatures = new ISignature[] { new Symmetric64() };
         var service = new KeyService(new TestConfiguration(), signatures);
@@ -122,13 +122,7 @@ public sealed class KeyServiceTests
         var apiKey = new ApiKey { Payload = new ApiKey.Definition { Sub = "1", Iat = 0, Exp = 0, Scopes = [] } };
         var token = _keyService.CreateToken(apiKey);
 
-        var result = service.ParseToken<ApiKey, ApiKey.Definition>(token);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.IsSuccess, Is.False);
-            Assert.That(result.Problem, Does.Contain("Algorithm HS256 is not supported"));
-        }
+        Assert.That(() => service.ParseToken<ApiKey, ApiKey.Definition>(token), Throws.TypeOf<NotSupportedException>().With.Message.EqualTo("Algorithm HS256 is not supported"));
     }
 
     [Test]
@@ -173,7 +167,7 @@ public sealed class KeyServiceTests
         var parts = token.Split('.');
         var malformedPayload = Convert.ToBase64String("{ \"invalid\": "u8.ToArray()).TrimEnd('=').Replace('+', '-').Replace('/', '_');
         var dataToSign = $"{parts[0]}.{malformedPayload}";
-        var signatureAlgorithm = new Symmetric64();
+        var signatureAlgorithm = new Symmetric256();
         var signatureBytes = signatureAlgorithm.Generate(dataToSign, new TestConfiguration().Secret);
         var signatureEncoded = Convert.ToBase64String(signatureBytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
         var tamperedToken = $"{dataToSign}.{signatureEncoded}";

@@ -6,7 +6,7 @@ public sealed record Result
     {
     }
 
-    public required bool IsSuccess { get; init; }
+    public bool IsSuccess { get; private init; }
     public string Problem { get; private init; } = null!;
     public static Result Success() => new() { IsSuccess = true };
     public static Result Failure(string problem) => new() { IsSuccess = false, Problem = problem };
@@ -20,7 +20,7 @@ public sealed record Result<TResponse>
 
     public TResponse Value { get; private init; } = default!;
     public string Problem { get; private init; } = null!;
-    public required bool IsSuccess { get; init; }
+    public bool IsSuccess { get; private init; }
 
     public static implicit operator Result<TResponse>(TResponse response) => Success(response);
     public static implicit operator Result<TResponse>(string problem) => Failure(problem);

@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace KeyGenerator.Tests;
 
-public sealed class JwtComplianceTests
+public sealed class TokenStructureTests
 {
     private IKeyService _keyService = null!;
 
@@ -14,7 +14,7 @@ public sealed class JwtComplianceTests
     }
 
     [Test]
-    public void ApiKey_ShouldFollowRfc7519Structure()
+    public void ApiKey_ShouldUseExpectedTokenStructure()
     {
         var apiKey = new ApiKey
         {
@@ -35,13 +35,13 @@ public sealed class JwtComplianceTests
             Assert.That(parts, Has.Length.EqualTo(3));
 
             var headerJson = Encoding.UTF8.GetString(DecodeBase64Url(parts[0]));
-            var header = JsonDocument.Parse(headerJson);
+            using var header = JsonDocument.Parse(headerJson);
             
             Assert.That(header.RootElement.GetProperty("alg").GetString(), Is.EqualTo("HS256"));
             Assert.That(header.RootElement.GetProperty("typ").GetString(), Is.EqualTo("API"));
 
             var payloadJson = Encoding.UTF8.GetString(DecodeBase64Url(parts[1]));
-            var payload = JsonDocument.Parse(payloadJson);
+            using var payload = JsonDocument.Parse(payloadJson);
 
             Assert.That(payload.RootElement.GetProperty("sub").GetString(), Is.EqualTo("user-123"));
             Assert.That(payload.RootElement.GetProperty("iat").GetInt64(), Is.EqualTo(1716750000));
@@ -54,7 +54,7 @@ public sealed class JwtComplianceTests
     }
 
     [Test]
-    public void StringKey_ShouldFollowRfc7519Structure()
+    public void StringKey_ShouldUseExpectedTokenStructure()
     {
         var key = new StringKey { Payload = new StringKey.Definition { Value = "test-payload" } };
 
@@ -66,13 +66,13 @@ public sealed class JwtComplianceTests
             Assert.That(parts, Has.Length.EqualTo(3));
 
             var headerJson = Encoding.UTF8.GetString(DecodeBase64Url(parts[0]));
-            var header = JsonDocument.Parse(headerJson);
+            using var header = JsonDocument.Parse(headerJson);
 
-            Assert.That(header.RootElement.GetProperty("alg").GetString(), Is.EqualTo("HS64"));
+            Assert.That(header.RootElement.GetProperty("alg").GetString(), Is.EqualTo("HS256"));
             Assert.That(header.RootElement.GetProperty("typ").GetString(), Is.EqualTo("STRING"));
 
             var payloadJson = Encoding.UTF8.GetString(DecodeBase64Url(parts[1]));
-            var payload = JsonDocument.Parse(payloadJson);
+            using var payload = JsonDocument.Parse(payloadJson);
 
             Assert.That(payload.RootElement.GetProperty("value").GetString(), Is.EqualTo("test-payload"));
 

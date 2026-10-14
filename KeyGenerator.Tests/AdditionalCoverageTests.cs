@@ -153,21 +153,22 @@ public sealed class AdditionalCoverageTests
     [Test]
     public void Base64Url_Encode_ShouldNotContainPaddingOrUnsafeChars()
     {
-        for (var len = 0; len <= 10; len++)
+        for (var length = 0; length <= 10; length++)
         {
-            var bytes = new byte[len];
-            for (var i = 0; i < len; i++)
+            var bytes = new byte[length];
+
+            for (var index = 0; index < length; index++)
             {
-                bytes[i] = (byte)(i * 31 + 7);
+                bytes[index] = (byte)(index * 31 + 7);
             }
 
             var encoded = Base64Url.Encode(bytes);
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(encoded, Does.Not.Contain("="), $"len={len}");
-                Assert.That(encoded, Does.Not.Contain("+"), $"len={len}");
-                Assert.That(encoded, Does.Not.Contain("/"), $"len={len}");
+                Assert.That(encoded, Does.Not.Contain("="), $"length={length}");
+                Assert.That(encoded, Does.Not.Contain("+"), $"length={length}");
+                Assert.That(encoded, Does.Not.Contain("/"), $"length={length}");
             }
         }
     }
@@ -175,25 +176,26 @@ public sealed class AdditionalCoverageTests
     [Test]
     public void Base64Url_Roundtrip_ShouldPreserveBytes()
     {
-        for (var len = 0; len <= 10; len++)
+        for (var length = 0; length <= 10; length++)
         {
-            var bytes = new byte[len];
-            for (var i = 0; i < len; i++)
+            var bytes = new byte[length];
+
+            for (var index = 0; index < length; index++)
             {
-                bytes[i] = (byte)(i * 17 + 3);
+                bytes[index] = (byte)(index * 17 + 3);
             }
 
             var encoded = Base64Url.Encode(bytes);
             var decoded = Base64Url.Decode(encoded);
 
-            Assert.That(decoded, Is.EqualTo(bytes), $"len={len}");
+            Assert.That(decoded, Is.EqualTo(bytes), $"length={length}");
         }
     }
 
     [Test]
     public void Verify_ShouldSucceed_WhenIatIsInFutureButExpIsAlsoInFuture()
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = TestClock.UtcNow;
         var apiKey = new ApiKey
         {
             Payload = new ApiKey.Definition
@@ -205,7 +207,7 @@ public sealed class AdditionalCoverageTests
             }
         };
 
-        var result = apiKey.Verify(TimeProvider.System);
+        var result = apiKey.Verify(TestClock.Provider);
 
         Assert.That(result.IsSuccess, Is.True);
     }
@@ -213,7 +215,7 @@ public sealed class AdditionalCoverageTests
     [Test]
     public void Verify_ShouldFail_WhenExpEqualsNow()
     {
-        var nowSeconds = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var nowSeconds = TestClock.UtcNow.ToUnixTimeSeconds();
         var apiKey = new ApiKey
         {
             Payload = new ApiKey.Definition
@@ -225,7 +227,7 @@ public sealed class AdditionalCoverageTests
             }
         };
 
-        var result = apiKey.Verify(TimeProvider.System);
+        var result = apiKey.Verify(TestClock.Provider);
 
         using (Assert.EnterMultipleScope())
         {
@@ -235,21 +237,21 @@ public sealed class AdditionalCoverageTests
     }
 
     [Test]
-    public void Verify_ShouldFail_WhenExpEqualsIat()
+    public void Verify_ShouldFail_WhenExpAndIatAreBothInPast()
     {
-        var ts = DateTimeOffset.UtcNow.AddDays(-1).ToUnixTimeSeconds();
+        var timestamp = TestClock.UtcNow.AddDays(-1).ToUnixTimeSeconds();
         var apiKey = new ApiKey
         {
             Payload = new ApiKey.Definition
             {
                 Sub = "user1",
                 Scopes = ["read"],
-                Iat = ts,
-                Exp = ts
+                Iat = timestamp,
+                Exp = timestamp
             }
         };
 
-        var result = apiKey.Verify(TimeProvider.System);
+        var result = apiKey.Verify(TestClock.Provider);
 
         using (Assert.EnterMultipleScope())
         {

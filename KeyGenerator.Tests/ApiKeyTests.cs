@@ -19,8 +19,8 @@ public sealed class ApiKeyTests
             {
                 Sub = "user123",
                 Scopes = ["read"],
-                Iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                Exp = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()
+                Iat = TestClock.UtcNow.ToUnixTimeSeconds(),
+                Exp = TestClock.UtcNow.AddHours(1).ToUnixTimeSeconds()
             }
         };
 
@@ -38,8 +38,8 @@ public sealed class ApiKeyTests
             {
                 Sub = "user123",
                 Scopes = ["read"],
-                Iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                Exp = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds()
+                Iat = TestClock.UtcNow.ToUnixTimeSeconds(),
+                Exp = TestClock.UtcNow.AddHours(1).ToUnixTimeSeconds()
             }
         };
 
@@ -56,7 +56,7 @@ public sealed class ApiKeyTests
     [Test]
     public void Verify_ShouldFail_WhenExpired()
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = TestClock.UtcNow;
         var expiredTime = now.AddHours(-1);
 
         var apiKey = new ApiKey
@@ -70,7 +70,7 @@ public sealed class ApiKeyTests
             }
         };
 
-        var result = apiKey.Verify(TimeProvider.System);
+        var result = apiKey.Verify(TestClock.Provider);
 
         using (Assert.EnterMultipleScope())
         {
@@ -82,7 +82,7 @@ public sealed class ApiKeyTests
     [Test]
     public void Verify_ShouldSucceed_WhenNotExpired()
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = TestClock.UtcNow;
         var validTime = now.AddHours(1);
 
         var apiKey = new ApiKey
@@ -96,7 +96,7 @@ public sealed class ApiKeyTests
             }
         };
 
-        var result = apiKey.Verify(TimeProvider.System);
+        var result = apiKey.Verify(TestClock.Provider);
 
         Assert.That(result.IsSuccess, Is.True);
     }
