@@ -153,6 +153,14 @@ Treat tokens as bearer credentials when they grant access. Use HTTPS, avoid logg
 
 Keep changes focused, add NUnit tests for behavior changes, and run the build and test commands above before opening a pull request. Include a description of the problem, resulting behavior, and any compatibility changes.
 
+## Repository security
+
+GitHub secret scanning and push protection detect supported credentials. Dependabot alerts and security updates monitor vulnerable dependencies, and CodeQL default setup analyzes C# and GitHub Actions.
+
+The Gitleaks workflow scans pushes and pull requests, with a full-history scan every Monday and on manual runs. To scan locally with Gitleaks 8.30.1, run `gitleaks git --redact --log-opts="--all"` and `gitleaks dir --redact`. Never put real secrets in environment example files. Ignoring a file does not remove it from Git history; revoke any exposed credential before removing it.
+
+Dependabot checks NuGet packages and GitHub Actions weekly.
+
 ## License
 
 [MIT](LICENSE). Free to use, modify, distribute, sublicense, and sell, including in commercial projects. Keep the copyright and license notice with copies or substantial portions of the code. The software is provided without warranty.
