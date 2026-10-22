@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/keygenerator-social-preview.png" alt="KeyGenerator logo" width="1040" />
+</div>
+
 # KeyGenerator
 
 A small .NET 10 library for creating and parsing signed tokens with strongly typed payloads.
