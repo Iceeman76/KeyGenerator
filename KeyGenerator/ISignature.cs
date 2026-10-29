@@ -1,4 +1,4 @@
-namespace KeyGenerator;
+namespace DotNetLab.KeyGenerator;
 
 public interface ISignature
 {

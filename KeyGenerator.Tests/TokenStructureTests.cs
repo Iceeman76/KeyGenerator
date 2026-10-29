@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace KeyGenerator.Tests;
+namespace DotNetLab.KeyGenerator.Tests;
 
 public sealed class TokenStructureTests
 {

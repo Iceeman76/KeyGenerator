@@ -1,4 +1,4 @@
-﻿namespace KeyGenerator;
+﻿namespace DotNetLab.KeyGenerator;
 
 public abstract record Key<TKey, TPayload> where TKey : class
 {

@@ -1,4 +1,4 @@
-namespace KeyGenerator.Tests;
+namespace DotNetLab.KeyGenerator.Tests;
 
 internal static class TestClock
 {

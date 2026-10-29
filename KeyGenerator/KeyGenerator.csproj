@@ -8,6 +8,7 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <Description>A .NET library for creating and parsing signed tokens with strongly typed payloads.</Description>
         <RepositoryUrl>https://github.com/Iceeman76/KeyGenerator</RepositoryUrl>
+        <RootNamespace>DotNetLab.KeyGenerator</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

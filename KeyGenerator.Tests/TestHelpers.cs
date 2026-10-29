@@ -1,6 +1,6 @@
-using KeyGenerator.Signatures;
+using DotNetLab.KeyGenerator.Signatures;
 
-namespace KeyGenerator.Tests;
+namespace DotNetLab.KeyGenerator.Tests;
 
 public sealed class TestConfiguration : IKeyConfiguration
 {

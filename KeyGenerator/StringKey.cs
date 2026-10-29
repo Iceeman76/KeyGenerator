@@ -1,6 +1,6 @@
-﻿using KeyGenerator.Signatures;
+﻿using DotNetLab.KeyGenerator.Signatures;
 
-namespace KeyGenerator;
+namespace DotNetLab.KeyGenerator;
 
 public sealed record StringKey : Key<StringKey, StringKey.Definition>
 {

@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace KeyGenerator.Signatures;
+namespace DotNetLab.KeyGenerator.Signatures;
 
 public sealed record Symmetric512 : ISignature
 {

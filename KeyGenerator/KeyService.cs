@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace KeyGenerator;
+namespace DotNetLab.KeyGenerator;
 
 public sealed class KeyService(IKeyConfiguration configuration, IEnumerable<ISignature> signatures) : IKeyService
 {

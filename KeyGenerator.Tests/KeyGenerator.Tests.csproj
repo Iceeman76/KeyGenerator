@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
+        <RootNamespace>DotNetLab.KeyGenerator.Tests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
